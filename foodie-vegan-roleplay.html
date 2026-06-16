@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مناظره میز غذا 🍖🥦</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;700;900&display=swap');
+
+  :root {
+    --meat: #c0392b;
+    --meat-light: #f9e5e4;
+    --vegan: #27ae60;
+    --vegan-light: #e8f8ef;
+    --bg: #fdf6ec;
+    --card: #ffffff;
+    --border: #ece0cc;
+    --text: #2c1a0e;
+    --muted: #8c7a66;
+    --shadow: 0 4px 24px rgba(0,0,0,0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Vazirmatn', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    direction: rtl;
+  }
+
+  header {
+    background: linear-gradient(135deg, #c0392b 0%, #e67e22 50%, #27ae60 100%);
+    padding: 28px 24px 20px;
+    text-align: center;
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(45deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 12px);
+  }
+  header h1 {
+    font-size: 1.8rem;
+    font-weight: 900;
+    letter-spacing: -0.5px;
+    position: relative;
+  }
+  header p {
+    font-size: 0.85rem;
+    opacity: 0.88;
+    margin-top: 6px;
+    position: relative;
+  }
+
+  .setup-panel {
+    max-width: 600px;
+    margin: 28px auto;
+    padding: 0 16px;
+  }
+
+  .api-card {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    padding: 22px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+  }
+
+  .api-card label {
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    color: var(--text);
+  }
+
+  .api-card input {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-family: 'Vazirmatn', monospace;
+    font-size: 0.82rem;
+    background: var(--bg);
+    color: var(--text);
+    transition: border 0.2s;
+    direction: ltr;
+    text-align: left;
+  }
+  .api-card input:focus {
+    outline: none;
+    border-color: #e67e22;
+  }
+
+  .hint {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 7px;
+  }
+  .hint a { color: #e67e22; text-decoration: none; }
+
+  .topic-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 6px;
+  }
+  .topic-row input {
+    flex: 1;
+    padding: 11px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 0.88rem;
+    background: var(--bg);
+    color: var(--text);
+  }
+  .topic-row input:focus { outline: none; border-color: #e67e22; }
+
+  .start-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #c0392b, #e67e22 50%, #27ae60);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    margin-top: 8px;
+  }
+  .start-btn:hover { opacity: 0.92; }
+  .start-btn:active { transform: scale(0.98); }
+  .start-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* CHAT AREA */
+  .chat-area {
+    max-width: 700px;
+    margin: 0 auto 32px;
+    padding: 0 16px;
+    display: none;
+  }
+
+  .chat-header {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 18px;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    padding: 14px 18px;
+    align-items: center;
+    box-shadow: var(--shadow);
+    flex-wrap: wrap;
+  }
+  .persona {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+  .persona .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+  }
+  .persona.gemini .dot { background: var(--meat); }
+  .persona.claude .dot { background: var(--vegan); }
+  .divider-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .messages {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 18px;
+    max-height: 55vh;
+    overflow-y: auto;
+    padding: 4px 2px;
+    scroll-behavior: smooth;
+  }
+
+  .msg {
+    display: flex;
+    gap: 10px;
+    animation: fadeUp 0.3s ease;
+  }
+  @keyframes fadeUp {
+    from { opacity:0; transform: translateY(8px); }
+    to { opacity:1; transform: translateY(0); }
+  }
+
+  .msg.gemini { flex-direction: row; }
+  .msg.claude  { flex-direction: row-reverse; }
+
+  .avatar {
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+    border: 2px solid;
+  }
+  .msg.gemini .avatar { border-color: var(--meat); background: var(--meat-light); }
+  .msg.claude  .avatar { border-color: var(--vegan); background: var(--vegan-light); }
+
+  .bubble {
+    max-width: 72%;
+    padding: 12px 16px;
+    border-radius: 18px;
+    font-size: 0.9rem;
+    line-height: 1.7;
+    position: relative;
+  }
+  .msg.gemini .bubble {
+    background: var(--meat-light);
+    border: 1.5px solid #f5c6c3;
+    border-radius: 4px 18px 18px 18px;
+    color: #5a1a15;
+  }
+  .msg.claude .bubble {
+    background: var(--vegan-light);
+    border: 1.5px solid #b2e4c5;
+    border-radius: 18px 4px 18px 18px;
+    color: #0f4024;
+    text-align: right;
+  }
+
+  .bubble .name {
+    font-weight: 700;
+    font-size: 0.72rem;
+    opacity: 0.65;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .typing-indicator {
+    display: flex; gap: 5px; align-items: center;
+    padding: 10px 14px;
+  }
+  .typing-indicator span {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--muted);
+    animation: bounce 1.2s infinite;
+  }
+  .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce {
+    0%,60%,100% { transform: translateY(0); }
+    30% { transform: translateY(-6px); }
+  }
+
+  .user-input-row {
+    display: flex;
+    gap: 8px;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    padding: 10px 12px;
+    box-shadow: var(--shadow);
+  }
+  .user-input-row input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 0.9rem;
+    color: var(--text);
+  }
+  .user-input-row input:focus { outline: none; }
+  .user-input-row input::placeholder { color: var(--muted); }
+
+  .send-btn {
+    padding: 8px 18px;
+    background: #e67e22;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Vazirmatn', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    white-space: nowrap;
+  }
+  .send-btn:hover { opacity: 0.88; }
+  .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .auto-btn {
+    padding: 8px 14px;
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 0.78rem;
+    cursor: pointer;
+    color: var(--muted);
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .auto-btn:hover { border-color: #27ae60; color: #27ae60; }
+
+  .reset-link {
+    text-align: center;
+    margin-top: 12px;
+    font-size: 0.8rem;
+    color: var(--muted);
+    cursor: pointer;
+    text-decoration: underline;
+  }
+
+  .error-msg {
+    background: #fdecea;
+    border: 1px solid #f5c6c3;
+    color: #c0392b;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    margin-top: 10px;
+  }
+
+  .rounds-badge {
+    font-size: 0.75rem;
+    color: var(--muted);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 3px 10px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🍖 مناظره سر میز غذا 🥦</h1>
+  <p>خوش‌غذا (Gemini) در برابر گیاه‌خوار (Claude)</p>
+</header>
+
+<!-- SETUP -->
+<div class="setup-panel" id="setup">
+  <div class="api-card">
+    <label>🔑 کلید API گوگل (Gemini)</label>
+    <input type="password" id="geminiKey" placeholder="AIza..." />
+    <p class="hint">از <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a> بگیر</p>
+  </div>
+
+  <div class="api-card">
+    <label>🔑 کلید API آنتروپیک (Claude)</label>
+    <input type="password" id="claudeKey" placeholder="sk-ant-..." />
+    <p class="hint">از <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a> بگیر (اختیاری - بدون کلید هم کار می‌کنه)</p>
+  </div>
+
+  <div class="api-card">
+    <label>🍽️ موضوع بحث رو بنویس</label>
+    <div class="topic-row">
+      <input type="text" id="topicInput" placeholder="مثلاً: کباب بخوریم یا سالاد؟" value="آیا گوشت خوردن اخلاقیه یا نه؟" />
+    </div>
+  </div>
+
+  <button class="start-btn" id="startBtn" onclick="startRoleplay()">🎭 شروع مناظره!</button>
+  <div id="setupError"></div>
+</div>
+
+<!-- CHAT -->
+<div class="chat-area" id="chatArea">
+  <div class="chat-header">
+    <div class="persona gemini">
+      <div class="dot"></div>
+      🍖 Gemini — خوش‌غذا
+    </div>
+    <div class="divider-line"></div>
+    <span class="rounds-badge" id="roundsBadge">دور ۰</span>
+    <div class="divider-line"></div>
+    <div class="persona claude">
+      <div class="dot"></div>
+      🥦 Claude — گیاه‌خوار
+    </div>
+  </div>
+
+  <div class="messages" id="messages"></div>
+
+  <div class="user-input-row">
+    <button class="auto-btn" id="autoBtn" onclick="autoRound()">🔄 دور بعدی</button>
+    <input type="text" id="userPrompt" placeholder="یه سوال یا موضوع جدید بده..." onkeydown="if(event.key==='Enter') sendUser()" />
+    <button class="send-btn" id="sendBtn" onclick="sendUser()">ارسال ➤</button>
+  </div>
+
+  <div class="reset-link" onclick="resetApp()">↺ شروع دوباره</div>
+</div>
+
+<script>
+let geminiKey = '';
+let claudeKey = '';
+let topic = '';
+let history = { gemini: [], claude: [] };
+let round = 0;
+let isLoading = false;
+
+const GEMINI_SYSTEM = `تو یه آدم خوش‌غذا و گوشت‌خور پروپا قرص هستی که عاشق کباب، جگر، مرغ، و انواع غذاهای گوشتیه. 
+با شوق و هیجان درباره غذاهای مختلف صحبت می‌کنی. 
+تو الان داری با یه گیاه‌خوار (Claude) بحث می‌کنی. 
+جواب‌هات کوتاه (۲-۳ جمله)، شاد، و پر از اشتیاق باشه. فارسی بنویس.`;
+
+const CLAUDE_SYSTEM = `تو یه گیاه‌خوار متعهد هستی که به محیط زیست و حقوق حیوانات اهمیت می‌دی. 
+عاشق سبزیجات، میوه، حبوبات، و غذاهای گیاهیه.
+تو الان داری با یه گوشت‌خور (Gemini) بحث می‌کنی.
+جواب‌هات کوتاه (۲-۳ جمله)، آروم اما محکم باشه. فارسی بنویس.`;
+
+async function callGemini(userMsg) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`;
+  
+  const contents = [];
+  for (let i = 0; i < history.gemini.length; i++) {
+    contents.push({ role: 'user', parts: [{ text: history.gemini[i].user }] });
+    if (history.gemini[i].model) contents.push({ role: 'model', parts: [{ text: history.gemini[i].model }] });
+  }
+  contents.push({ role: 'user', parts: [{ text: userMsg }] });
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      system_instruction: { parts: [{ text: GEMINI_SYSTEM }] },
+      contents,
+      generationConfig: { temperature: 0.9, maxOutputTokens: 200 }
+    })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  return data.candidates[0].content.parts[0].text;
+}
+
+async function callClaude(userMsg) {
+  const messages = [];
+  for (let h of history.claude) {
+    messages.push({ role: 'user', content: h.user });
+    if (h.assistant) messages.push({ role: 'assistant', content: h.assistant });
+  }
+  messages.push({ role: 'user', content: userMsg });
+
+  const headers = { 'Content-Type': 'application/json', 'anthropic-version': '2023-06-01' };
+  if (claudeKey) headers['x-api-key'] = claudeKey;
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 200,
+      system: CLAUDE_SYSTEM,
+      messages
+    })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  return data.content[0].text;
+}
+
+function addMessage(role, text) {
+  const container = document.getElementById('messages');
+  const isGemini = role === 'gemini';
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  div.innerHTML = `
+    <div class="avatar">${isGemini ? '🍖' : '🥦'}</div>
+    <div class="bubble">
+      <div class="name">${isGemini ? 'Gemini – خوش‌غذا' : 'Claude – گیاه‌خوار'}</div>
+      ${text}
+    </div>`;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+function showTyping(role) {
+  const container = document.getElementById('messages');
+  const isGemini = role === 'gemini';
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  div.id = `typing-${role}`;
+  div.innerHTML = `
+    <div class="avatar">${isGemini ? '🍖' : '🥦'}</div>
+    <div class="bubble">
+      <div class="typing-indicator"><span></span><span></span><span></span></div>
+    </div>`;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+function removeTyping(role) {
+  document.getElementById(`typing-${role}`)?.remove();
+}
+
+function setLoading(val) {
+  isLoading = val;
+  document.getElementById('autoBtn').disabled = val;
+  document.getElementById('sendBtn').disabled = val;
+}
+
+function updateRound() {
+  document.getElementById('roundsBadge').textContent = `دور ${round}`;
+}
+
+async function autoRound(customTopic) {
+  if (isLoading) return;
+  setLoading(true);
+  round++;
+  updateRound();
+
+  const prompt = customTopic || (round === 1
+    ? `بحث ما درباره اینه: "${topic}". تو رو به عنوان گوشت‌خور شروع کن.`
+    : `طرف مقابلت گفت: "${history.gemini.at(-1)?.model || topic}". جواب بده.`);
+
+  try {
+    // Gemini speaks
+    showTyping('gemini');
+    const geminiPrompt = round === 1
+      ? `بحث ما درباره اینه: "${topic}". تو رو به عنوان گوشت‌خور شروع کن.`
+      : `گیاه‌خوار گفت: "${history.claude.at(-1)?.assistant || ''}". جواب بده.`;
+    
+    const geminiReply = await callGemini(geminiPrompt);
+    removeTyping('gemini');
+    addMessage('gemini', geminiReply);
+    history.gemini.push({ user: geminiPrompt, model: geminiReply });
+
+    await new Promise(r => setTimeout(r, 500));
+
+    // Claude responds
+    showTyping('claude');
+    const claudePrompt = `گوشت‌خور گفت: "${geminiReply}". جواب بده.`;
+    const claudeReply = await callClaude(claudePrompt);
+    removeTyping('claude');
+    addMessage('claude', claudeReply);
+    history.claude.push({ user: claudePrompt, assistant: claudeReply });
+
+  } catch (e) {
+    removeTyping('gemini');
+    removeTyping('claude');
+    const errDiv = document.createElement('div');
+    errDiv.className = 'error-msg';
+    errDiv.textContent = '❌ خطا: ' + e.message;
+    document.getElementById('messages').appendChild(errDiv);
+  }
+
+  setLoading(false);
+}
+
+async function sendUser() {
+  const input = document.getElementById('userPrompt');
+  const text = input.value.trim();
+  if (!text || isLoading) return;
+  input.value = '';
+
+  const userDiv = document.createElement('div');
+  userDiv.style.cssText = 'text-align:center; padding: 6px 12px; background:#fff3e0; border-radius:20px; font-size:0.82rem; color:#7a4f00; border:1px solid #ffe0b2; margin: 4px auto; width:fit-content;';
+  userDiv.textContent = '💬 تو: ' + text;
+  document.getElementById('messages').appendChild(userDiv);
+
+  setLoading(true);
+  round++;
+  updateRound();
+
+  try {
+    showTyping('gemini');
+    const geminiReply = await callGemini(text);
+    removeTyping('gemini');
+    addMessage('gemini', geminiReply);
+    history.gemini.push({ user: text, model: geminiReply });
+
+    await new Promise(r => setTimeout(r, 400));
+
+    showTyping('claude');
+    const claudePrompt = `گوشت‌خور گفت: "${geminiReply}" و یه نفر هم پرسید: "${text}". جواب بده.`;
+    const claudeReply = await callClaude(claudePrompt);
+    removeTyping('claude');
+    addMessage('claude', claudeReply);
+    history.claude.push({ user: claudePrompt, assistant: claudeReply });
+
+  } catch (e) {
+    removeTyping('gemini');
+    removeTyping('claude');
+    const errDiv = document.createElement('div');
+    errDiv.className = 'error-msg';
+    errDiv.textContent = '❌ خطا: ' + e.message;
+    document.getElementById('messages').appendChild(errDiv);
+  }
+
+  setLoading(false);
+}
+
+function startRoleplay() {
+  geminiKey = document.getElementById('geminiKey').value.trim();
+  claudeKey = document.getElementById('claudeKey').value.trim();
+  topic = document.getElementById('topicInput').value.trim() || 'آیا گوشت خوردن اخلاقیه یا نه؟';
+
+  const errEl = document.getElementById('setupError');
+
+  if (!geminiKey) {
+    errEl.innerHTML = '<div class="error-msg">❌ کلید API گوگل رو وارد کن!</div>';
+    return;
+  }
+  errEl.innerHTML = '';
+
+  document.getElementById('setup').style.display = 'none';
+  document.getElementById('chatArea').style.display = 'block';
+
+  autoRound();
+}
+
+function resetApp() {
+  history = { gemini: [], claude: [] };
+  round = 0;
+  document.getElementById('messages').innerHTML = '';
+  document.getElementById('setup').style.display = 'block';
+  document.getElementById('chatArea').style.display = 'none';
+}
+</script>
+</body>
+</html>
